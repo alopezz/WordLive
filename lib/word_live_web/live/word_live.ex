@@ -12,7 +12,7 @@ defmodule WordLiveWeb.WordLive do
 
   def render(assigns) do
     ~H"""
-    <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input" phx-throttle="500">
+    <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input">
       <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
         <%= for r <- 0..5 do %>
           <.game_row word={@rows[r]}/>
@@ -52,7 +52,9 @@ defmodule WordLiveWeb.WordLive do
 
   defp handle_key(socket, key) do
     case key do
-      key when byte_size(key) == 1 -> input_letter(socket, key)
+      key when byte_size(key) == 1 ->
+        key = String.upcase(key)
+        if letter?(key), do: input_letter(socket, key), else: socket
       "Backspace" -> delete_letter(socket)
       "DEL" -> delete_letter(socket)
       _ -> socket
@@ -60,8 +62,6 @@ defmodule WordLiveWeb.WordLive do
   end
 
   defp input_letter(socket, letter) do
-    letter = String.upcase(letter)
-
     update(socket, :rows,
       fn rows ->
         current_row = socket.assigns[:current_row]
@@ -72,6 +72,10 @@ defmodule WordLiveWeb.WordLive do
         end
       end
     )
+  end
+
+  defp letter?(letter) do
+    (String.to_charlist(letter) |> List.first()) in ?A..?Z
   end
 
   defp delete_letter(socket) do
