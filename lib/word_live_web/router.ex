@@ -17,7 +17,8 @@ defmodule WordLiveWeb.Router do
   scope "/", WordLiveWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    #get "/", PageController, :index
+    live "/", WordLive
   end
 
   # Other scopes may use custom stacks.
