@@ -35,9 +35,9 @@ defmodule WordLiveWeb.Keyboard do
   end
 
   def key(assigns) do
-    assigns = assign(assigns, :event, "keyboard-#{assigns[:key]}")
     ~H"""
-    <button class="flex flex-1 justify-center items-center mr-2 h-10 bg-gray-300 rounded" phx-click={@event}>
+    <button class="flex flex-1 justify-center items-center mr-2 h-10 bg-gray-300 rounded"
+            phx-click="key-input" phx-value-key={@key}>
       <%= @key %>
     </button>
     """

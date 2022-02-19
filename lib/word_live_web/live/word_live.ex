@@ -2,12 +2,37 @@ defmodule WordLiveWeb.WordLive do
   use WordLiveWeb, :live_view
   use Phoenix.Component
 
+  def mount(_params, _session, socket) do
+    socket = assign(socket,
+      current_row: 0,
+      rows: %{0 => "", 1 => "", 2 => "", 3 => "", 4 => "", 5 => ""}
+    )
+    {:ok, socket}
+  end
+
+  def render(assigns) do
+    ~H"""
+    <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input" phx-throttle="500">
+      <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
+        <%= for r <- 0..5 do %>
+          <.game_row word={@rows[r]}/>
+        <% end %>
+      </div>
+      <WordLiveWeb.Keyboard.keyboard/>
+    </div>
+    """
+  end
+
   def game_row(assigns) do
-    letters = 5
+    letters =
+      assigns[:word]
+      |> String.pad_trailing(5)
+      |> String.split( "", trim: true)
+    assigns = assign(assigns, :letters, letters)
     ~H"""
     <div class="grid grid-cols-5 gap-1 justify-center">
-      <%= for _ <- 1..letters do %>
-        <.tile value={nil}/>
+      <%= for letter <- @letters do %>
+        <.tile value={letter}/>
       <% end %>
     </div>
     """
@@ -15,9 +40,47 @@ defmodule WordLiveWeb.WordLive do
 
   def tile(assigns) do
     ~H"""
-    <div class="border-2 h-14 w-14 text-4xl">
+    <div class="border-2 h-14 w-14 text-4xl flex justify-center items-center">
       <%= @value %>
     </div>
     """
   end
+
+  def handle_event("key-input", %{"key" => key}, socket) do
+    {:noreply, handle_key(socket, key)}
+  end
+
+  defp handle_key(socket, key) do
+    case key do
+      key when byte_size(key) == 1 -> input_letter(socket, key)
+      "Backspace" -> delete_letter(socket)
+      "DEL" -> delete_letter(socket)
+      _ -> socket
+    end
+  end
+
+  defp input_letter(socket, letter) do
+    letter = String.upcase(letter)
+
+    update(socket, :rows,
+      fn rows ->
+        current_row = socket.assigns[:current_row]
+        if String.length(rows[current_row]) < 5 do
+          Map.put(rows, current_row, rows[current_row] <> letter)
+        else
+          rows
+        end
+      end
+    )
+  end
+
+  defp delete_letter(socket) do
+    update(socket, :rows,
+      fn rows ->
+        current_row = socket.assigns[:current_row]
+        Map.put(rows, current_row, String.slice(rows[current_row], 0..-2))
+      end
+    )
+  end
+  
 end
