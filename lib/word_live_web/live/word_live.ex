@@ -27,7 +27,7 @@ defmodule WordLiveWeb.WordLive do
     letters =
       assigns[:word]
       |> String.pad_trailing(5)
-      |> String.split( "", trim: true)
+      |> String.graphemes()
     assigns = assign(assigns, :letters, letters)
     ~H"""
     <div class="grid grid-cols-5 gap-1 justify-center">
@@ -39,8 +39,17 @@ defmodule WordLiveWeb.WordLive do
   end
 
   def tile(assigns) do
+    border_class = if assigns.value == " " do
+      "border-gray-300"
+    else
+      "border-black"
+    end
+    
+    tile_classes = ~w"border-2 h-14 w-14 text-4xl flex justify-center items-center #{border_class}"
+    
+    assigns = assign(assigns, :classes, tile_classes)
     ~H"""
-    <div class="border-2 h-14 w-14 text-4xl flex justify-center items-center">
+    <div class={@classes}>
       <%= @value %>
     </div>
     """
