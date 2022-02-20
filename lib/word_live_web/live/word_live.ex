@@ -5,12 +5,13 @@ defmodule WordLiveWeb.WordLive do
   def mount(_params, _session, socket) do
     socket = assign(socket,
       current_row: 0,
-      rows: %{0 => "", 1 => "", 2 => "", 3 => "", 4 => "", 5 => ""}
+      current_input: "",
     )
     {:ok, socket}
   end
 
-  def render(assigns) do
+  def render(%{current_row: current_row, current_input: current_input} = assigns) do
+    assigns = assign(assigns, :rows, build_rows({current_row, current_input}, nil))
     ~H"""
     <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input">
       <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
@@ -21,6 +22,18 @@ defmodule WordLiveWeb.WordLive do
       <WordLiveWeb.Keyboard.keyboard/>
     </div>
     """
+  end
+
+  # Calculate the map of rows from the game and current UI state
+  defp build_rows({current_row, current_input}, _game) do
+    for row_idx <- 0..5, into: %{} do
+      if row_idx == current_row do
+        {row_idx, current_input}
+      else
+        # Take the value from the game
+        {row_idx, ""}
+      end
+    end
   end
 
   def game_row(assigns) do
@@ -71,13 +84,12 @@ defmodule WordLiveWeb.WordLive do
   end
 
   defp input_letter(socket, letter) do
-    update(socket, :rows,
-      fn rows ->
-        current_row = socket.assigns[:current_row]
-        if String.length(rows[current_row]) < 5 do
-          Map.put(rows, current_row, rows[current_row] <> letter)
+    update(socket, :current_input,
+      fn input ->
+        if String.length(input) < 5 do
+          input <> letter
         else
-          rows
+          input
         end
       end
     )
@@ -88,12 +100,8 @@ defmodule WordLiveWeb.WordLive do
   end
 
   defp delete_letter(socket) do
-    update(socket, :rows,
-      fn rows ->
-        current_row = socket.assigns[:current_row]
-        Map.put(rows, current_row, String.slice(rows[current_row], 0..-2))
-      end
-    )
+    update(socket, :current_input,
+      fn input -> String.slice(input, 0..-2) end)
   end
   
 end
