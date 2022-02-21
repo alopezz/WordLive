@@ -11,6 +11,10 @@ defmodule WordLive.Puzzle do
   the letter being in the right position, the letter being in the word but in a different position,
   and the letter not being present, respectively.
   """
+  def try_word(%{word: word} = game, guess) when byte_size(guess) != byte_size(word) do
+    {:invalid, :wrong_length, game}
+  end
+
   def try_word(%{word: word, attempts: attempts} = game, guess) do
     response = compare_words(guess, word)
 

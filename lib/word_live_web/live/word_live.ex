@@ -155,12 +155,17 @@ defmodule WordLiveWeb.WordLive do
     update(socket, :current_input, fn input -> String.slice(input, 0..-2) end)
   end
 
-  defp submit_word(socket) do
+  defp submit_word(%{assigns: %{game: game, current_input: current_input}} = socket) do
+    {result, _, new_game} = Puzzle.try_word(game, current_input)
+
     socket
-    |> update(:game, fn game ->
-      {_, _, new_game} = Puzzle.try_word(game, socket.assigns[:current_input])
-      new_game
-    end)
-    |> assign(:current_input, "")
+    |> assign(:game, new_game)
+    |> assign(
+      :current_input,
+      case result do
+        :invalid -> current_input
+        _ -> ""
+      end
+    )
   end
 end
