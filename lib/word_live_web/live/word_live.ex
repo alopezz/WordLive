@@ -5,21 +5,25 @@ defmodule WordLiveWeb.WordLive do
   alias WordLive.Puzzle
 
   def mount(_params, _session, socket) do
-    game = if connected?(socket) do
-      Puzzle.new()
-    else
-      %{}
-    end
-    
-    socket = assign(socket,
-      current_input: "",
-      game: game
-    )
+    game =
+      if connected?(socket) do
+        Puzzle.new()
+      else
+        %{}
+      end
+
+    socket =
+      assign(socket,
+        current_input: "",
+        game: game
+      )
+
     {:ok, socket}
   end
 
   def render(%{current_input: current_input, game: game} = assigns) do
     assigns = assign(assigns, :rows, build_rows(current_input, game))
+
     ~H"""
     <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input">
       <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
@@ -47,9 +51,13 @@ defmodule WordLiveWeb.WordLive do
           word
           |> String.pad_trailing(5)
           |> String.graphemes()
-        word -> word
+
+        word ->
+          word
       end
+
     assigns = assign(assigns, :letters, letters)
+
     ~H"""
     <div class="grid grid-cols-5 gap-1 justify-center">
       <%= for letter <- @letters do %>
@@ -60,23 +68,27 @@ defmodule WordLiveWeb.WordLive do
   end
 
   def tile(assigns) do
-    border_class = if assigns.value == " " do
-      "border-gray-300"
-    else
-      "border-black"
-    end
-    
-    tile_classes = ~w"border-2 h-14 w-14 text-4xl flex justify-center items-center #{border_class}"
-    
+    border_class =
+      if assigns.value == " " do
+        "border-gray-300"
+      else
+        "border-black"
+      end
+
+    tile_classes =
+      ~w"border-2 h-14 w-14 text-4xl flex justify-center items-center #{border_class}"
+
     assigns =
       assigns
-      |> assign(:value,
-    case assigns[:value] do
-      {_state, letter} -> letter
-      letter -> letter
-    end
-    )
+      |> assign(
+        :value,
+        case assigns[:value] do
+          {_state, letter} -> letter
+          letter -> letter
+        end
+      )
       |> assign(:classes, tile_classes)
+
     ~H"""
     <div class={@classes}>
       <%= @value %>
@@ -93,24 +105,32 @@ defmodule WordLiveWeb.WordLive do
       key when byte_size(key) == 1 ->
         key = String.upcase(key)
         if letter?(key), do: input_letter(socket, key), else: socket
-      "Backspace" -> delete_letter(socket)
-      "DEL" -> delete_letter(socket)
-      "Enter" -> submit_word(socket)
-      "ENTER" -> submit_word(socket)
-      _ -> socket
+
+      "Backspace" ->
+        delete_letter(socket)
+
+      "DEL" ->
+        delete_letter(socket)
+
+      "Enter" ->
+        submit_word(socket)
+
+      "ENTER" ->
+        submit_word(socket)
+
+      _ ->
+        socket
     end
   end
 
   defp input_letter(socket, letter) do
-    update(socket, :current_input,
-      fn input ->
-        if String.length(input) < 5 do
-          input <> letter
-        else
-          input
-        end
+    update(socket, :current_input, fn input ->
+      if String.length(input) < 5 do
+        input <> letter
+      else
+        input
       end
-    )
+    end)
   end
 
   defp letter?(letter) do
@@ -118,8 +138,7 @@ defmodule WordLiveWeb.WordLive do
   end
 
   defp delete_letter(socket) do
-    update(socket, :current_input,
-      fn input -> String.slice(input, 0..-2) end)
+    update(socket, :current_input, fn input -> String.slice(input, 0..-2) end)
   end
 
   defp submit_word(socket) do
@@ -130,5 +149,4 @@ defmodule WordLiveWeb.WordLive do
     end)
     |> assign(:current_input, "")
   end
-  
 end

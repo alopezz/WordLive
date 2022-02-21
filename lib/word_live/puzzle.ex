@@ -15,7 +15,7 @@ defmodule WordLive.Puzzle do
     response = compare_words(guess, word)
 
     game = %{game | attempts: [response | attempts]}
-    
+
     if guess == word do
       {:yes, response, game}
     else
@@ -26,7 +26,9 @@ defmodule WordLive.Puzzle do
   defp compare_words(guess, word) do
     for {guess_letter, word_letter} <- Enum.zip(String.graphemes(guess), String.graphemes(word)) do
       case guess_letter do
-        ^word_letter -> {:green, guess_letter}
+        ^word_letter ->
+          {:green, guess_letter}
+
         letter ->
           if String.contains?(word, letter) do
             {:yellow, guess_letter}

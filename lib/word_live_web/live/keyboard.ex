@@ -15,6 +15,7 @@ defmodule WordLiveWeb.Keyboard do
 
   def keyboard(assigns) do
     assigns = assign(assigns, keys: assigns[:keys] || @keys)
+
     ~H"""
     <div class="flex-rows-3 w-full justify-self-center">
       <%= for key_row <- @keys do %>
@@ -42,5 +43,4 @@ defmodule WordLiveWeb.Keyboard do
     </button>
     """
   end
-  
 end

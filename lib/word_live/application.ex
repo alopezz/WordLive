@@ -9,7 +9,7 @@ defmodule WordLive.Application do
   def start(_type, _args) do
     children = [
       # Start the Ecto repository
-      #WordLive.Repo,
+      # WordLive.Repo,
       # Start the Telemetry supervisor
       WordLiveWeb.Telemetry,
       # Start the PubSub system
