@@ -1,6 +1,6 @@
 defmodule WordLive.Puzzle do
   def new do
-    %{word: "dodge", attempts: []}
+    %{word: "DODGE", attempts: []}
   end
 
   @doc """

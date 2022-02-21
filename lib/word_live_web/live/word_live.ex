@@ -68,15 +68,29 @@ defmodule WordLiveWeb.WordLive do
   end
 
   def tile(assigns) do
-    border_class =
-      if assigns.value == " " do
-        "border-gray-300"
-      else
-        "border-black"
+    border_classes =
+      case assigns[:value] do
+        value when value == " " -> "border-2 border-gray-300"
+        value when is_binary(value) -> "border-2 border-black"
+        {_state, _value} -> ""
+      end
+
+    bg_classes =
+      case assigns[:value] do
+        {:green, _} -> "bg-green-600"
+        {:yellow, _} -> "bg-yellow-400"
+        {:black, _} -> "bg-neutral-500"
+        _ -> ""
+      end
+
+    fg_classes =
+      case assigns[:value] do
+        {_, _} -> "text-white"
+        _ -> "text-black"
       end
 
     tile_classes =
-      ~w"border-2 h-14 w-14 text-4xl flex justify-center items-center #{border_class}"
+      ~w"h-14 w-14 text-4xl flex justify-center items-center #{border_classes} #{bg_classes} #{fg_classes}"
 
     assigns =
       assigns
