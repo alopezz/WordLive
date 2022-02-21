@@ -2,21 +2,29 @@ defmodule WordLiveWeb.WordLive do
   use WordLiveWeb, :live_view
   use Phoenix.Component
 
+  alias WordLive.Puzzle
+
   def mount(_params, _session, socket) do
+    game = if connected?(socket) do
+      Puzzle.new()
+    else
+      %{}
+    end
+    
     socket = assign(socket,
-      current_row: 0,
       current_input: "",
+      game: game
     )
     {:ok, socket}
   end
 
-  def render(%{current_row: current_row, current_input: current_input} = assigns) do
-    assigns = assign(assigns, :rows, build_rows({current_row, current_input}, nil))
+  def render(%{current_input: current_input, game: game} = assigns) do
+    assigns = assign(assigns, :rows, build_rows(current_input, game))
     ~H"""
     <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input">
       <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
         <%= for r <- 0..5 do %>
-          <.game_row word={@rows[r]}/>
+          <.game_row word={Map.get(@rows, r, "")}/>
         <% end %>
       </div>
       <WordLiveWeb.Keyboard.keyboard/>
@@ -25,22 +33,22 @@ defmodule WordLiveWeb.WordLive do
   end
 
   # Calculate the map of rows from the game and current UI state
-  defp build_rows({current_row, current_input}, _game) do
-    for row_idx <- 0..5, into: %{} do
-      if row_idx == current_row do
-        {row_idx, current_input}
-      else
-        # Take the value from the game
-        {row_idx, ""}
-      end
-    end
+  defp build_rows(current_input, game) do
+    [current_input | Map.get(game, :attempts, [])]
+    |> Enum.reverse()
+    |> Enum.with_index(fn element, index -> {index, element} end)
+    |> Enum.into(%{})
   end
 
   def game_row(assigns) do
     letters =
-      assigns[:word]
-      |> String.pad_trailing(5)
-      |> String.graphemes()
+      case assigns[:word] do
+        word when is_binary(word) ->
+          word
+          |> String.pad_trailing(5)
+          |> String.graphemes()
+        word -> word
+      end
     assigns = assign(assigns, :letters, letters)
     ~H"""
     <div class="grid grid-cols-5 gap-1 justify-center">
@@ -60,7 +68,15 @@ defmodule WordLiveWeb.WordLive do
     
     tile_classes = ~w"border-2 h-14 w-14 text-4xl flex justify-center items-center #{border_class}"
     
-    assigns = assign(assigns, :classes, tile_classes)
+    assigns =
+      assigns
+      |> assign(:value,
+    case assigns[:value] do
+      {_state, letter} -> letter
+      letter -> letter
+    end
+    )
+      |> assign(:classes, tile_classes)
     ~H"""
     <div class={@classes}>
       <%= @value %>
@@ -79,6 +95,8 @@ defmodule WordLiveWeb.WordLive do
         if letter?(key), do: input_letter(socket, key), else: socket
       "Backspace" -> delete_letter(socket)
       "DEL" -> delete_letter(socket)
+      "Enter" -> submit_word(socket)
+      "ENTER" -> submit_word(socket)
       _ -> socket
     end
   end
@@ -102,6 +120,15 @@ defmodule WordLiveWeb.WordLive do
   defp delete_letter(socket) do
     update(socket, :current_input,
       fn input -> String.slice(input, 0..-2) end)
+  end
+
+  defp submit_word(socket) do
+    socket
+    |> update(:game, fn game ->
+      {_, _, new_game} = Puzzle.try_word(game, socket.assigns[:current_input])
+      new_game
+    end)
+    |> assign(:current_input, "")
   end
   
 end

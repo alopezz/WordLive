@@ -26,12 +26,12 @@ defmodule WordLive.Puzzle do
   defp compare_words(guess, word) do
     for {guess_letter, word_letter} <- Enum.zip(String.graphemes(guess), String.graphemes(word)) do
       case guess_letter do
-        ^word_letter -> {guess_letter, :green}
+        ^word_letter -> {:green, guess_letter}
         letter ->
           if String.contains?(word, letter) do
-            {guess_letter, :yellow}
+            {:yellow, guess_letter}
           else
-            {guess_letter, :black}
+            {:black, guess_letter}
           end
       end
     end
