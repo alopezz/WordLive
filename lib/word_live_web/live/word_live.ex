@@ -89,8 +89,14 @@ defmodule WordLiveWeb.WordLive do
         _ -> "text-black"
       end
 
+    animation_classes =
+      case assigns[:value] do
+        {_, _} -> "transition-all delay-500 animate-flip"
+        _ -> ""
+      end
+
     tile_classes =
-      ~w"h-14 w-14 text-4xl flex justify-center items-center #{border_classes} #{bg_classes} #{fg_classes}"
+      ~w"h-14 w-14 text-4xl flex justify-center items-center #{border_classes} #{bg_classes} #{fg_classes} #{animation_classes}"
 
     assigns =
       assigns
