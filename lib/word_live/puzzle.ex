@@ -1,4 +1,6 @@
 defmodule WordLive.Puzzle do
+  alias WordLive.Dictionary
+
   def new do
     %{word: "DODGE", attempts: []}
   end
@@ -16,14 +18,18 @@ defmodule WordLive.Puzzle do
   end
 
   def try_word(%{word: word, attempts: attempts} = game, guess) do
-    response = compare_words(guess, word)
+    if Dictionary.lookup(guess) do
+      response = compare_words(guess, word)
 
-    game = %{game | attempts: [response | attempts]}
+      game = %{game | attempts: [response | attempts]}
 
-    if guess == word do
-      {:yes, response, game}
+      if guess == word do
+        {:yes, response, game}
+      else
+        {:no, response, game}
+      end
     else
-      {:no, response, game}
+      {:invalid, :noexist, game}
     end
   end
 

@@ -14,6 +14,7 @@ defmodule WordLive.Application do
       WordLiveWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: WordLive.PubSub},
+      WordLive.Dictionary,
       # Start the Endpoint (http/https)
       WordLiveWeb.Endpoint
       # Start a worker by calling: WordLive.Worker.start_link(arg)
