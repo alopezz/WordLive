@@ -33,6 +33,26 @@ defmodule WordLive.Puzzle do
     end
   end
 
+  def used_letters(%{attempts: attempts}) do
+    for attempt <- attempts,
+        {color, letter} <- attempt,
+        reduce: %{} do
+      %{^letter => prev_color} = used ->
+        Map.put(
+          used,
+          letter,
+          case color do
+            :green -> :green
+            :yellow -> if prev_color != :green, do: :yellow, else: prev_color
+            color -> color
+          end
+        )
+
+      used ->
+        Map.put(used, letter, color)
+    end
+  end
+
   defp compare_words(guess, word) do
     for {guess_letter, word_letter} <- Enum.zip(String.graphemes(guess), String.graphemes(word)) do
       case guess_letter do
