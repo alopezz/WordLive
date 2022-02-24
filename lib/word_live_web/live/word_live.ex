@@ -31,7 +31,7 @@ defmodule WordLiveWeb.WordLive do
           <.game_row word={Map.get(@rows, r, "")}/>
         <% end %>
       </div>
-      <WordLiveWeb.Keyboard.keyboard/>
+      <WordLiveWeb.Keyboard.keyboard used_letters={Puzzle.used_letters(@game)}/>
     </div>
     """
   end
@@ -70,16 +70,16 @@ defmodule WordLiveWeb.WordLive do
   def tile(assigns) do
     border_classes =
       case assigns[:value] do
-        value when value == " " -> "border-2 border-gray-300"
+        value when value == " " -> "border-2 border-gray"
         value when is_binary(value) -> "border-2 border-black"
         {_state, _value} -> ""
       end
 
     bg_classes =
       case assigns[:value] do
-        {:green, _} -> "bg-green-600"
-        {:yellow, _} -> "bg-yellow-400"
-        {:black, _} -> "bg-neutral-500"
+        {:green, _} -> "bg-green"
+        {:yellow, _} -> "bg-yellow"
+        {:black, _} -> "bg-neutral"
         _ -> ""
       end
 

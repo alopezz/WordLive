@@ -53,6 +53,8 @@ defmodule WordLive.Puzzle do
     end
   end
 
+  def used_letters(%{}), do: %{}
+
   defp compare_words(guess, word) do
     for {guess_letter, word_letter} <- Enum.zip(String.graphemes(guess), String.graphemes(word)) do
       case guess_letter do

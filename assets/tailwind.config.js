@@ -7,6 +7,13 @@ module.exports = {
     '../lib/*_web/**/*.*ex'
   ],
   theme: {
+    colors: {
+      'white': '#ffffff',
+      'gray': '#d3d6da',
+      'green': '#6aaa64',
+      'yellow': '#c9b458',
+      'neutral': '#787c7e',
+    },
     extend: {
       animation: {
         flip: 'flip 1s ease-in-out',
