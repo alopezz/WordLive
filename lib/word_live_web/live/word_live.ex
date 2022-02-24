@@ -92,7 +92,8 @@ defmodule WordLiveWeb.WordLive do
     animation_classes =
       case assigns[:value] do
         {_, _} -> "transition-all delay-500 animate-flip"
-        _ -> ""
+        " " -> ""
+        value when is_binary(value) -> "animate-pop"
       end
 
     tile_classes =
