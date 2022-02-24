@@ -47,7 +47,7 @@ defmodule WordLiveWeb.Keyboard do
     key_classes = ~w"flex flex-1 justify-center items-center mr-2 h-10 rounded #{color_classes}"
 
     assigns = assign(assigns, :classes, key_classes)
-    
+
     ~H"""
     <button class={@classes}
             phx-click="key-input" phx-value-key={@key}>

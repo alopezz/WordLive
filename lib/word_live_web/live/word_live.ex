@@ -15,7 +15,8 @@ defmodule WordLiveWeb.WordLive do
     socket =
       assign(socket,
         current_input: "",
-        game: game
+        game: game,
+        was_invalid: false
       )
 
     {:ok, socket}
@@ -28,7 +29,7 @@ defmodule WordLiveWeb.WordLive do
     <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input">
       <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
         <%= for r <- 0..5 do %>
-          <.game_row word={Map.get(@rows, r, "")}/>
+          <.game_row word={Map.get(@rows, r, nil)} was_invalid={@was_invalid}/>
         <% end %>
       </div>
       <WordLiveWeb.Keyboard.keyboard used_letters={Puzzle.used_letters(@game)}/>
@@ -38,7 +39,7 @@ defmodule WordLiveWeb.WordLive do
 
   # Calculate the map of rows from the game and current UI state
   defp build_rows(current_input, game) do
-    [current_input | Map.get(game, :attempts, [])]
+    [{:current, current_input} | Map.get(game, :attempts, [])]
     |> Enum.reverse()
     |> Enum.with_index(fn element, index -> {index, element} end)
     |> Enum.into(%{})
@@ -47,19 +48,36 @@ defmodule WordLiveWeb.WordLive do
   def game_row(assigns) do
     letters =
       case assigns[:word] do
-        word when is_binary(word) ->
+        {:current, word} ->
           word
           |> String.pad_trailing(5)
           |> String.graphemes()
 
+        # Empty (future) rows
+        nil ->
+          [" ", " ", " ", " ", " "]
+
+        # Past attempts
         word ->
           word
       end
 
-    assigns = assign(assigns, :letters, letters)
+    animation_classes =
+      case assigns do
+        %{was_invalid: true, word: {:current, _word}} ->
+          Process.send_after(self(), :clear_invalid, 800)
+          "animate-shake"
+
+        _ ->
+          ""
+      end
+
+    classes = ~w"grid grid-cols-5 gap-1 justify-center #{animation_classes}"
+
+    assigns = assign(assigns, letters: letters, classes: classes)
 
     ~H"""
-    <div class="grid grid-cols-5 gap-1 justify-center">
+    <div class={@classes}>
       <%= for letter <- @letters do %>
         <.tile value={letter}/>
       <% end %>
@@ -93,6 +111,8 @@ defmodule WordLiveWeb.WordLive do
       case assigns[:value] do
         {_, _} -> "transition-all delay-500 animate-flip"
         " " -> ""
+        # Makes a pop animation when a tile goes from empty
+        # to having a letter (i.e. when a letter was input)
         value when is_binary(value) -> "animate-pop"
       end
 
@@ -152,6 +172,7 @@ defmodule WordLiveWeb.WordLive do
         input
       end
     end)
+    |> assign(was_invalid: false)
   end
 
   defp letter?(letter) do
@@ -160,6 +181,7 @@ defmodule WordLiveWeb.WordLive do
 
   defp delete_letter(socket) do
     update(socket, :current_input, fn input -> String.slice(input, 0..-2) end)
+    |> assign(was_invalid: false)
   end
 
   defp submit_word(%{assigns: %{game: game, current_input: current_input}} = socket) do
@@ -168,11 +190,14 @@ defmodule WordLiveWeb.WordLive do
     socket
     |> assign(:game, new_game)
     |> assign(
-      :current_input,
       case result do
-        :invalid -> current_input
-        _ -> ""
+        :invalid -> [current_input: current_input, was_invalid: true]
+        _ -> [current_input: "", was_invalid: false]
       end
     )
+  end
+
+  def handle_info(:clear_invalid, socket) do
+    {:noreply, assign(socket, :was_invalid, false)}
   end
 end
