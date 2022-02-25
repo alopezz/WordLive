@@ -8,7 +8,8 @@ defmodule WordLive.Puzzle do
   @doc """
   - `{:ok, game}` is returned if the input was accepted, `game` being the updated puzzle state.
   - `{:error, reason}` is returned if the input was not accepted, either because it was invalid
-    or because the game was already over.
+    or because the game was already over. Possible reasons are encoded as `:bad_length`, `:game_over`
+    and `:noexist`.
 
   :green, :yellow, and :black represent, for each letter, the meaning of
   the letter being in the right position, the letter being in the word but in a different position,

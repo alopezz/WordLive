@@ -16,7 +16,8 @@ defmodule WordLiveWeb.WordLive do
       assign(socket,
         current_input: "",
         game: game,
-        was_invalid: false
+        was_invalid: false,
+        error: nil
       )
 
     {:ok, socket}
@@ -27,7 +28,8 @@ defmodule WordLiveWeb.WordLive do
 
     ~H"""
     <div id="game" class="grid grid-rows-1 justify-center" phx-window-keydown="key-input">
-      <div id="board" class="grid grid-rows-6 gap-1 p-3 box-border w-fit">
+      <div id="board" class="relative grid grid-rows-6 gap-1 p-3 box-border w-fit">
+        <.error_banner error={@error}/>
         <%= for r <- 0..5 do %>
           <.game_row word={Map.get(@rows, r, nil)} was_invalid={@was_invalid}/>
         <% end %>
@@ -137,6 +139,20 @@ defmodule WordLiveWeb.WordLive do
     """
   end
 
+  def error_banner(assigns) do
+    ~H"""
+    <div class="absolute flex flex-1 justify-center top-3 left-0 right-0">
+      <%= if @error do %>
+        <div class="rounded bg-black text-white p-2 z-50"><%= render_error(@error) %></div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp render_error(:bad_length), do: "Word has the wrong length"
+  defp render_error(:noexist), do: "Word doesn't exist"
+  defp render_error(:game_over), do: "Game's already over"
+
   def handle_event("key-input", %{"key" => key}, socket) do
     {:noreply, handle_key(socket, key)}
   end
@@ -186,12 +202,15 @@ defmodule WordLiveWeb.WordLive do
 
   defp submit_word(%{assigns: %{game: game, current_input: current_input}} = socket) do
     case Puzzle.try_word(game, current_input) do
-      {:ok, new_game} -> assign(socket, game: new_game, current_input: "", was_invalid: false)
-      {:error, _reason} -> assign(socket, :was_invalid, true)
+      {:ok, new_game} ->
+        assign(socket, game: new_game, current_input: "", was_invalid: false, error: nil)
+
+      {:error, reason} ->
+        assign(socket, was_invalid: true, error: reason)
     end
   end
 
   def handle_info(:clear_invalid, socket) do
-    {:noreply, assign(socket, :was_invalid, false)}
+    {:noreply, assign(socket, was_invalid: false, error: nil)}
   end
 end
