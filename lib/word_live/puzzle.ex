@@ -19,14 +19,19 @@ defmodule WordLive.Puzzle do
   end
 
   def try_word(%{word: word, attempts: attempts} = game, guess) do
-    if Dictionary.lookup(guess) do
-      response = compare_words(guess, word)
+    cond do
+      won?(game) ->
+        {:error, :game_over}
 
-      game = %{game | attempts: [response | attempts]}
+      Dictionary.lookup(guess) ->
+        response = compare_words(guess, word)
 
-      {:ok, game}
-    else
-      {:error, :noexist}
+        game = %{game | attempts: [response | attempts]}
+
+        {:ok, game}
+
+      true ->
+        {:error, :noexist}
     end
   end
 

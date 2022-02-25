@@ -10,7 +10,8 @@ defmodule WordLive.PuzzleTest do
            false <- Puzzle.won?(game),
            {:ok, game} <- Puzzle.try_word(game, "GROPE"),
            false <- Puzzle.won?(game),
-           {:ok, game} <- Puzzle.try_word(game, "DODGE") do
+           {:ok, game} <- Puzzle.try_word(game, "DODGE"),
+           {:error, :game_over} <- Puzzle.try_word(game, "HOCUS") do
         game
       else
         true -> flunk("Declared win too early")
