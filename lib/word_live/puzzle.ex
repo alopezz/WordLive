@@ -6,15 +6,16 @@ defmodule WordLive.Puzzle do
   end
 
   @doc """
-  :yes is returned if the word was guessed, :no if the word is valid but the wrong guess,
-  and :invalid if the word doesn't exist.
+  - `{:ok, game}` is returned if the input was accepted, `game` being the updated puzzle state.
+  - `{:error, reason}` is returned if the input was not accepted, either because it was invalid
+    or because the game was already over.
 
   :green, :yellow, and :black represent, for each letter, the meaning of
   the letter being in the right position, the letter being in the word but in a different position,
   and the letter not being present, respectively.
   """
-  def try_word(%{word: word} = game, guess) when byte_size(guess) != byte_size(word) do
-    {:invalid, :wrong_length, game}
+  def try_word(%{word: word}, guess) when byte_size(guess) != byte_size(word) do
+    {:error, :bad_length}
   end
 
   def try_word(%{word: word, attempts: attempts} = game, guess) do
@@ -23,13 +24,9 @@ defmodule WordLive.Puzzle do
 
       game = %{game | attempts: [response | attempts]}
 
-      if guess == word do
-        {:yes, response, game}
-      else
-        {:no, response, game}
-      end
+      {:ok, game}
     else
-      {:invalid, :noexist, game}
+      {:error, :noexist}
     end
   end
 
@@ -54,6 +51,14 @@ defmodule WordLive.Puzzle do
   end
 
   def used_letters(%{}), do: %{}
+
+  def won?(%{attempts: [last_attempt | _rest]}) do
+    Enum.all?(last_attempt, &match?({:green, _}, &1))
+  end
+
+  def won?(%{attempts: []}) do
+    false
+  end
 
   defp compare_words(guess, word) do
     for {guess_letter, word_letter} <- Enum.zip(String.graphemes(guess), String.graphemes(word)) do

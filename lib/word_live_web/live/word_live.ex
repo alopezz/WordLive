@@ -185,16 +185,10 @@ defmodule WordLiveWeb.WordLive do
   end
 
   defp submit_word(%{assigns: %{game: game, current_input: current_input}} = socket) do
-    {result, _, new_game} = Puzzle.try_word(game, current_input)
-
-    socket
-    |> assign(:game, new_game)
-    |> assign(
-      case result do
-        :invalid -> [current_input: current_input, was_invalid: true]
-        _ -> [current_input: "", was_invalid: false]
-      end
-    )
+    case Puzzle.try_word(game, current_input) do
+      {:ok, new_game} -> assign(socket, game: new_game, current_input: "", was_invalid: false)
+      {:error, _reason} -> assign(socket, :was_invalid, true)
+    end
   end
 
   def handle_info(:clear_invalid, socket) do
